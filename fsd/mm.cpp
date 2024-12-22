@@ -50,7 +50,7 @@ mm::mm()
    {
       char *buf=wentry->getdata();
       if (!STRCASECMP(buf,"passive")) passivemode=1; else
-      if (!STRCASECMP(buf,"ative")) passivemode=0;
+      if (!STRCASECMP(buf,"active")) passivemode=0;
    }
 	
    wgroup=configman->getgroup("system");
@@ -261,6 +261,7 @@ void mm::startdownload()
 }
 void mm::dodownload()
 {
+	
    if ((mtime()-prevdownload)>MAXMETARDOWNLOADTIME)
    {
       dolog(L_WARNING, "METAR download interrupted due to timeout");
@@ -270,6 +271,7 @@ void mm::dodownload()
    }
    if (FD_ISSET(sock, rmask))
    {
+	   
 	   char buf[4096];
 	   int bytes=READSOCK(sock, buf, 4096);
    /*char* sockrecvbuffer;
@@ -281,6 +283,7 @@ void mm::dodownload()
 	   }
 	   else if (passivemode)//&&(datareadsock==-1))
 	   {
+		   //dolog(L_WARNING, "Pasi");
 		   char* newbuffer = (char*) malloc(bytes+sockrecvbufferlen);
 		   memcpy(newbuffer,sockrecvbuffer,sockrecvbufferlen);
 		   	if (sockrecvbufferlen)
@@ -320,8 +323,10 @@ void mm::dodownload()
 						   char data[1000];
     					   time_t now=time(NULL);
 	    				   struct tm *tp=gmtime(&now);
+
 						   sprintf(data,"RETR %02dZ.TXT\n",(tp->tm_hour+21)%24);
 						   WRITESOCK(sock, data, strlen(data));
+						   dolog(L_INFO, data);
 						   dolog(L_INFO,"METAR: Starting download of METAR data");
 						}
 					}
@@ -348,8 +353,10 @@ void mm::dodownload()
 		   }
 	   }
    }
+   
    if (datareadsock==-1)
    {
+
       if (!FD_ISSET(datasock, rmask)) return;
       datareadsock=accept(datasock, NULL, NULL);
       return;
@@ -357,8 +364,10 @@ void mm::dodownload()
    if (!FD_ISSET(datareadsock, rmask)) return;
    char buf[1024];
    int bytes=READSOCK(datareadsock, buf, 1024);
+   
    if (bytes<=0)
    {
+	   
       stopdownload();
       newfileready=1;
    } else
